@@ -1,10 +1,9 @@
-# Don't Remove Credit @VJ_Botz
-# Subscribe YouTube Channel For Amazing Bot @Tech_VJ
-# Ask Doubt on telegram @KingVJ01
-
 import logging
 import logging.config
-from pyrogram import Client 
+import asyncio
+import datetime
+from pyrogram import Client
+from pyrogram.errors import BadMsgNotification
 from config import API_ID, API_HASH, BOT_TOKEN, FORCE_SUB, PORT
 from aiohttp import web
 from plugins.web_support import web_server
@@ -28,29 +27,44 @@ class Bot(Client):
         )
 
     async def start(self):
-       await super().start()
-       me = await self.get_me()
-       self.mention = me.mention
-       self.username = me.username 
-       self.force_channel = FORCE_SUB
-       if FORCE_SUB:
-         try:
-            link = await self.export_chat_invite_link(FORCE_SUB)                  
-            self.invitelink = link
-         except Exception as e:
-            logging.warning(e)
-            logging.warning("Make Sure Bot admin in force sub channel")             
-            self.force_channel = None
-       app = web.AppRunner(await web_server())
-       await app.setup()
-       bind_address = "0.0.0.0"
-       await web.TCPSite(app, bind_address, PORT).start()
-       logging.info(f"{me.first_name} ✅✅ BOT started successfully ✅✅")
-      
+        max_retries = 3  # Number of retry attempts
+        for attempt in range(max_retries):
+            try:
+                log_current_time()  # Log the current time for debugging
+                await super().start()
+                me = await self.get_me()
+                self.mention = me.mention
+                self.username = me.username 
+                self.force_channel = FORCE_SUB
+                if FORCE_SUB:
+                    try:
+                        link = await self.export_chat_invite_link(FORCE_SUB)
+                        self.invitelink = link
+                    except Exception as e:
+                        logging.warning(e)
+                        logging.warning("Make Sure Bot admin in force sub channel")             
+                        self.force_channel = None
+                app = web.AppRunner(await web_server())
+                await app.setup()
+                bind_address = "0.0.0.0"
+                await web.TCPSite(app, bind_address, PORT).start()
+                logging.info(f"{me.first_name} ✅✅ BOT started successfully ✅✅")
+                break  # Exit the retry loop on success
+            except BadMsgNotification as e:
+                logging.error(f"Retry {attempt + 1}/{max_retries} failed with BadMsgNotification error: {e}")
+                await asyncio.sleep(5)  # Wait before retrying
+            except Exception as e:
+                logging.error(f"An unexpected error occurred: {e}")
+                await asyncio.sleep(5)  # Wait before retrying
 
     async def stop(self, *args):
-      await super().stop()      
-      logging.info("Bot Stopped 🙄")
-        
+        await super().stop()
+        logging.info("Bot Stopped 🙄")
+
+
+def log_current_time():
+    """Log the current time for debugging purposes."""
+    logging.info(f"Current time: {datetime.datetime.now()}")
+
 bot = Bot()
 bot.run()
