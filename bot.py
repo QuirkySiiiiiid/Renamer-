@@ -4,7 +4,7 @@ import asyncio
 import datetime
 import subprocess
 import time
-from pyrogram import Client
+from pyrofork import Client
 from pyrogram.errors import BadMsgNotification
 from config import API_ID, API_HASH, BOT_TOKEN, FORCE_SUB, PORT
 from aiohttp import web
