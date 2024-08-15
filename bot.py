@@ -3,6 +3,7 @@ import logging.config
 import asyncio
 import datetime
 import subprocess
+import time
 from pyrogram import Client
 from pyrogram.errors import BadMsgNotification
 from config import API_ID, API_HASH, BOT_TOKEN, FORCE_SUB, PORT
@@ -30,7 +31,6 @@ class Bot(Client):
         max_retries = 3  # Number of retry attempts
         for attempt in range(max_retries):
             try:
-                synchronize_time()  # Ensure time is synchronized before starting
                 log_current_time()  # Log the current time for debugging
                 await super().start()
                 me = await self.get_me()
@@ -43,7 +43,7 @@ class Bot(Client):
                         self.invitelink = link
                     except Exception as e:
                         logging.warning(e)
-                        logging.warning("Make Sure Bot admin in force sub channel")             
+                        logging.warning("Make sure the bot is an admin in the force-sub channel")             
                         self.force_channel = None
                 app = web.AppRunner(await web_server())
                 await app.setup()
@@ -53,7 +53,7 @@ class Bot(Client):
                 break  # Exit the retry loop on success
             except BadMsgNotification as e:
                 logging.error(f"Retry {attempt + 1}/{max_retries} failed with BadMsgNotification error: {e}")
-                synchronize_time()  # Ensure system time is synchronized
+                log_current_time()  # Log the time before retrying
                 await asyncio.sleep(5)  # Wait before retrying
             except Exception as e:
                 logging.error(f"An unexpected error occurred: {e}")
@@ -63,18 +63,10 @@ class Bot(Client):
         await super().stop()
         logging.info("Bot Stopped 🙄")
 
-
-def synchronize_time():
-    """Ensure system time is synchronized with NTP."""
-    try:
-        subprocess.run(['sudo', 'timedatectl', 'set-ntp', 'on'], check=True)
-        logging.info("System time synchronized with NTP.")
-    except subprocess.CalledProcessError as e:
-        logging.error(f"Failed to synchronize time: {e}")
-
 def log_current_time():
-    """Log the current time for debugging purposes."""
-    logging.info(f"Current time: {datetime.datetime.now()}")
+    """Log the current system time for debugging purposes."""
+    current_time = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime())
+    logging.info(f"Current system time (UTC): {current_time}")
 
 bot = Bot()
 bot.run()
