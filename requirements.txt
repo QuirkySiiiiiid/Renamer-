@@ -4,6 +4,7 @@ humanize
 hachoir
 motor
 pyrofork
+pyrogram
 TgCrypto
 dnspython
 aiohttp
