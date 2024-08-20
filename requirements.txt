@@ -18,3 +18,4 @@ pyrofork==2.3.41
 PySocks==1.7.1
 TgCrypto==1.2.5
 yarl==1.9.4
+pyrofork
