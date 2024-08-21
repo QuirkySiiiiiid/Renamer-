@@ -13,7 +13,7 @@ multidict==6.0.5
 pillow==10.4.0
 pyaes==1.6.1
 pymediainfo-pyrofork==6.0.1
-pymongo==4.8.0
+pymongo>=4.5,<5
 git+https://github.com/Hrishi2861/pyrofork-2.2.11-peer-fix.git
 PySocks==1.7.1
 TgCrypto==1.2.5
