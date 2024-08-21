@@ -8,6 +8,7 @@ from config import API_ID, API_HASH, BOT_TOKEN, FORCE_SUB, PORT
 from aiohttp import web
 from plugins.web_support import web_server
 
+# Configure logging
 logging.config.fileConfig('logging.conf')
 logging.getLogger().setLevel(logging.INFO)
 logging.getLogger("pyrogram").setLevel(logging.ERROR)
@@ -29,11 +30,11 @@ class Bot(Client):
         max_retries = 3  # Number of retry attempts
         for attempt in range(max_retries):
             try:
-                log_current_time()  # Log the current time for debugging
+                self.log_current_time()  # Log the current time for debugging
                 await super().start()
                 me = await self.get_me()
                 self.mention = me.mention
-                self.username = me.username 
+                self.username = me.username
                 self.force_channel = FORCE_SUB
                 if FORCE_SUB:
                     try:
@@ -41,7 +42,7 @@ class Bot(Client):
                         self.invitelink = link
                     except Exception as e:
                         logging.warning(e)
-                        logging.warning("Make sure the bot is an admin in the force-sub channel")             
+                        logging.warning("Make sure the bot is an admin in the force-sub channel")
                         self.force_channel = None
                 app = web.AppRunner(await web_server())
                 await app.setup()
@@ -51,7 +52,7 @@ class Bot(Client):
                 break  # Exit the retry loop on success
             except BadMsgNotification as e:
                 logging.error(f"Retry {attempt + 1}/{max_retries} failed with BadMsgNotification error: {e}")
-                log_current_time()  # Log the time before retrying
+                self.log_current_time()  # Log the time before retrying
                 await asyncio.sleep(5)  # Wait before retrying
             except Exception as e:
                 logging.error(f"An unexpected error occurred: {e}")
