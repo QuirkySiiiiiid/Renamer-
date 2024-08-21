@@ -17,3 +17,4 @@ git+https://github.com/Hrishi2861/pyrofork-2.2.11-peer-fix.git
 PySocks==1.7.1
 TgCrypto==1.2.5
 yarl==1.9.4
+pyrogram==2.0.106

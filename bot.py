@@ -1,20 +1,13 @@
 import logging
 import logging.config
-import asyncio
-import time
 from pyrogram import Client, filters
-from pyrogram.errors import BadMsgNotification
-from config import API_ID, API_HASH, BOT_TOKEN, FORCE_SUB, PORT
-from aiohttp import web
-from plugins.web_support import web_server
+from pyrogram.errors import PeerIdInvalid, ChatAdminRequired, ChatWriteForbidden
 
-# Configure logging
 logging.config.fileConfig('logging.conf')
 logging.getLogger().setLevel(logging.INFO)
 logging.getLogger("pyrogram").setLevel(logging.ERROR)
 
 class Bot(Client):
-
     def __init__(self):
         super().__init__(
             name="WebX-Renamer",
@@ -27,55 +20,61 @@ class Bot(Client):
         )
 
     async def start(self):
-        max_retries = 3  # Number of retry attempts
-        for attempt in range(max_retries):
+        try:
+            await super().start()
+            me = await self.get_me()
+            self.username = me.username
+            self.force_channel = FORCE_SUB
+
+            if FORCE_SUB:
+                try:
+                    link = await self.export_chat_invite_link(FORCE_SUB)
+                    self.invitelink = link
+                except Exception as e:
+                    logging.warning(e)
+                    logging.warning("Make sure the bot is an admin in the force-sub channel")             
+                    self.force_channel = None
+
+            # Try sending a message to a chat ID, with integer conversion
             try:
-                self.log_current_time()  # Log the current time for debugging
-                await super().start()
-                me = await self.get_me()
-                self.mention = me.mention
-                self.username = me.username
-                self.force_channel = FORCE_SUB
-                if FORCE_SUB:
-                    try:
-                        link = await self.export_chat_invite_link(FORCE_SUB)
-                        self.invitelink = link
-                    except Exception as e:
-                        logging.warning(e)
-                        logging.warning("Make sure the bot is an admin in the force-sub channel")
-                        self.force_channel = None
-                app = web.AppRunner(await web_server())
-                await app.setup()
-                bind_address = "0.0.0.0"
-                await web.TCPSite(app, bind_address, PORT).start()
-                logging.info(f"{me.first_name} ✅✅ BOT started successfully ✅✅")
-                break  # Exit the retry loop on success
-            except BadMsgNotification as e:
-                logging.error(f"Retry {attempt + 1}/{max_retries} failed with BadMsgNotification error: {e}")
-                self.log_current_time()  # Log the time before retrying
-                await asyncio.sleep(5)  # Wait before retrying
+                chat_id = YOUR_CHAT_ID  # Replace with the valid peer ID (chat/group/channel ID)
+
+                # Convert chat_id to integer if it is a string
+                if isinstance(chat_id, str):
+                    chat_id = int(chat_id)
+
+                await self.send_message_with_workaround(chat_id, "Hello with workaround!")
+            except ValueError:
+                logging.error("Chat ID must be an integer.")
+            except PeerIdInvalid:
+                logging.error("The provided chat ID is invalid. Make sure the bot is a member of the group or channel.")
+            except ChatAdminRequired:
+                logging.error("Bot is not an admin in the target group or channel.")
+            except ChatWriteForbidden:
+                logging.error("Bot does not have permission to write in the target group or channel.")
             except Exception as e:
                 logging.error(f"An unexpected error occurred: {e}")
-                await asyncio.sleep(5)  # Wait before retrying
+
+            logging.info(f"{me.first_name} ✅✅ BOT started successfully ✅✅")
+        except Exception as e:
+            logging.error(f"An unexpected error occurred: {e}")
 
     async def stop(self, *args):
         await super().stop()
         logging.info("Bot Stopped 🙄")
 
-    @staticmethod
-    def log_current_time():
-        """Log the current system time for debugging purposes."""
-        current_time = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime())
-        logging.info(f"Current system time (UTC): {current_time}")
+    async def send_message_with_workaround(self, peer_id, message):
+        """A workaround to handle peer ID issues."""
+        try:
+            chat = await self.get_chat(peer_id)
+            if chat.username:
+                await self.send_message(chat.username, message)
+            else:
+                await self.send_message(chat.id, message)
+        except PeerIdInvalid:
+            logging.error(f"Peer ID {peer_id} is invalid.")
+        except Exception as e:
+            logging.error(f"An unexpected error occurred: {e}")
 
-# Define a new instance of Client
 bot = Bot()
-
-# Define a message handler for private messages
-@bot.on_message(filters.private)
-async def hello(client, message):
-    await message.reply("Hello from Pyrogram!")
-
-# Start the bot
-if __name__ == "__main__":
-    bot.run()
+bot.run()
