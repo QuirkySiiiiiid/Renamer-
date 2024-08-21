@@ -1,10 +1,8 @@
 import logging
 import logging.config
 import asyncio
-import datetime
-import subprocess
 import time
-from pyrogram import Client
+from pyrogram import Client, filters
 from pyrogram.errors import BadMsgNotification
 from config import API_ID, API_HASH, BOT_TOKEN, FORCE_SUB, PORT
 from aiohttp import web
@@ -68,5 +66,19 @@ def log_current_time():
     current_time = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime())
     logging.info(f"Current system time (UTC): {current_time}")
 
-bot = Bot()
-bot.run()
+app = Client(
+    "my_account",
+    api_id=API_ID,
+    api_hash=API_HASH,
+    bot_token=BOT_TOKEN
+)
+
+@app.on_message(filters.private)
+async def hello(client, message):
+    await message.reply("Hello from Pyrogram!")
+
+# Start the bot and run the web server
+if __name__ == "__main__":
+    bot = Bot()
+    bot.run()
+    app.run()
