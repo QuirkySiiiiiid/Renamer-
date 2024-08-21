@@ -8,12 +8,12 @@ frozenlist==1.4.1
 hachoir==3.3.0
 humanize==4.10.0
 idna==3.7
-motor==3.5.1
+motor==3.4.0  # or another compatible version
+pymongo==4.4.1
 multidict==6.0.5
 pillow==10.4.0
 pyaes==1.6.1
 pymediainfo-pyrofork==6.0.1
-pymongo>=4.5,<5
 git+https://github.com/Hrishi2861/pyrofork-2.2.11-peer-fix.git
 PySocks==1.7.1
 TgCrypto==1.2.5
