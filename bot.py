@@ -76,5 +76,5 @@ class Bot(Client):
         except Exception as e:
             logging.error(f"An unexpected error occurred: {e}")
 
-bot = Bot()
+
 bot.run()
