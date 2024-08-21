@@ -61,24 +61,20 @@ class Bot(Client):
         await super().stop()
         logging.info("Bot Stopped 🙄")
 
-def log_current_time():
-    """Log the current system time for debugging purposes."""
-    current_time = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime())
-    logging.info(f"Current system time (UTC): {current_time}")
+    @staticmethod
+    def log_current_time():
+        """Log the current system time for debugging purposes."""
+        current_time = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime())
+        logging.info(f"Current system time (UTC): {current_time}")
 
-app = Client(
-    "my_account",
-    api_id=API_ID,
-    api_hash=API_HASH,
-    bot_token=BOT_TOKEN
-)
+# Define a new instance of Client
+bot = Bot()
 
-@app.on_message(filters.private)
+# Define a message handler for private messages
+@bot.on_message(filters.private)
 async def hello(client, message):
     await message.reply("Hello from Pyrogram!")
 
-# Start the bot and run the web server
+# Start the bot
 if __name__ == "__main__":
-    bot = Bot()
     bot.run()
-    app.run()
